@@ -1,7 +1,7 @@
 var orderList = [];
 var mqtt;
 var reconnectTimeout = 2000;
-var host = "15.207.222.251";
+var host = "ec2-15-207-222-251.ap-south-1.compute.amazonaws.com";
 var port = 8083;
 var nameElement = document.getElementById("name");
 var walletBalElement = document.getElementById("wallet_bal");
