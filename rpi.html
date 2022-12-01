@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.6.8/firebase-database.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Empty Cart</title>
+
+</head>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-image: url('./assets/bg.png');
+        height: 85.5vh;
+        background-size: cover;
+        background-repeat: inherit;
+        background-position: center;
+    }
+
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+    }
+
+    .row {
+        border-bottom: dotted rgb(187, 185, 185);
+    }
+
+    img {
+        width: 100;
+        height: 100;
+    }
+
+    .side {
+        border-left: dotted rgb(187, 185, 185);
+    }
+
+    .equal {
+        margin-left: 10px;
+    }
+
+    .image {
+        max-width: 40%;
+    }
+
+    .rate {
+
+        position: absolute;
+        left: 59%;
+        top: 60%;
+
+
+    }
+
+    main {
+        padding-bottom: 10%;
+    }
+
+    /** Modal CSS**/
+    /* Style the header */
+
+
+    /* Page content */
+    .content {
+        padding: 16px;
+    }
+
+    /* The sticky class is added to the header with JS when it reaches its scroll position */
+    .sticky {
+        position: fixed;
+        top: 0;
+        width: 100%
+    }
+
+    /* Add some top padding to the page content to prevent sudden quick movement (as the header gets a new position at the top of the page (position:fixed and top:0) */
+    .sticky+.content {
+        padding-top: 102px;
+    }
+
+    .ring-container {
+        position: relative;
+    }
+
+    #cir {
+        width: 15px;
+        height: 15px;
+        background-color: #62bd19;
+        border-radius: 50%;
+        position: absolute;
+        top: 39px;
+        left: -230px;
+        /* -365*/
+
+    }
+
+    .ringring {
+        border: 3px solid #62bd19;
+        -webkit-border-radius: 30px;
+        height: 25px;
+        width: 25px;
+        position: absolute;
+        left: -235px;
+        /* -370*/
+        top: 34px;
+        -webkit-animation: pulsate 1s ease-out;
+        -webkit-animation-iteration-count: infinite;
+        opacity: 0.0
+    }
+
+    @-webkit-keyframes pulsate {
+        0% {
+            -webkit-transform: scale(0.1, 0.1);
+            opacity: 0.0;
+        }
+
+        50% {
+            opacity: 1.0;
+        }
+
+        100% {
+            -webkit-transform: scale(1.2, 1.2);
+            opacity: 0.0;
+        }
+    }
+
+    .trigger {
+        text-align: center;
+        padding: 7px 13px;
+        background: #3e3e3e;
+        color: #fff;
+        font-size: 15px;
+        outline: none;
+        border: none;
+        border-radius: 5px;
+        font-family: cursive;
+    }
+
+    .modal {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(1.1);
+        transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
+    }
+
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 1rem 1.5rem;
+        width: 24rem;
+        border-radius: 0.5rem;
+    }
+
+    .ppheader {
+        text-indent: -20rem;
+    }
+
+    .close-button {
+        float: right;
+        width: 1.5rem;
+        line-height: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 0.25rem;
+        background-color: lightgray;
+    }
+
+    .close-button:hover {
+        background-color: darkgray;
+    }
+
+    .show-modal {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1.0);
+        transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+    }
+
+    .row {
+        display: flex;
+        /* equal height of the children */
+    }
+
+    .col {
+        flex: 1;
+        /* additionally, equal width */
+
+        padding: 1em;
+        border: solid;
+    }
+
+    .title {
+        max-height: 100px;
+        position: absolute;
+        max-width: 40%;
+        left: 45%;
+    }
+</style>
+
+<body>
+    <div class="modal">
+        <div class="modal-content">
+            <h1>Cart is not Stable, Please make it stable </h1>
+        </div>
+    </div>
+    <div id="myHeader"
+        class="header flex flex-row justify-between z-1 bg-white shadow-sm shadow-radiallayer justify-center text-center align-center">
+
+        <!-- <div class="title text-center  items-center flex-row justify-center flex">
+            <h1 id="name" class="text-base font-semibold 2xl:text-xl text-txt ml-8"></h1>
+            mr-2 text-base font-semibold 2xl:text-4xl text-txt ml-4
+        </div> -->
+
+
+        <div class="logo ml-16 items-center">
+            <img width="300px" src="./assets/Deerika_hunapstudio-01.png" alt="">
+        </div>
+
+        <div class="wallet flex ">
+            <ul class="flex text-center items-center flex-row justify-center">
+                <!-- <li class="mr-2 ml-4"><img src="./assets/pngrup.png" alt=""></li> -->
+                <li class="font-semibold text-4xl ppheader	"></label>&#8377; Product Price Checker</li>
+                <li class="mr-2 text-green-700 ml-4 text-base font-semibold 2xl:text-3xl text-txt "><label
+                        id="wallet_bal"></label></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <main>
+        <!-- <div class="row">asdasd</div> -->
+
+        <div class="container bg-white z-1"
+            style="max-width: 80%; margin: 0 auto;border-radius: 10px; margin-top: 2.3rem; height: 400px;">
+        </div>
+        <!-- <div class="row">
+            <div class="col">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</div>
+            <div class="col">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad omnis quae expedita ipsum
+                nobis praesentium velit animi minus amet perspiciatis laboriosam similique debitis iste ratione nemo ea
+                at corporis aliquam.</div>
+        </div> -->
+
+
+    </main>
+    <div class="footer">
+        <div class="grid grid-flow-row-dense grid-cols-1  p-3">
+            <div class="btn flex flex-row justify-center rounded-full bg-yellow-500">
+                <div class="flex flex-col  align-left mb-4 mt-2 ">
+                    <!-- <h6 class="text-base 2xl:text-md  text-txt">Total Saving &#8377; <label id="savings"></label></h6> -->
+                    <h2 class="text-2xl font-semibold"> Need to check product price? No Problem,
+                        Just Scan a barcode here.
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="rpi.js"></script>
+
+
+</html>
